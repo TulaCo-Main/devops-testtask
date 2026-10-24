@@ -3,5 +3,6 @@ kind: Namespace
 metadata:
   name: nodeapp
   labels:
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled
     app.kubernetes.io/name: nodeapp
     app.kubernetes.io/part-of: devops-test

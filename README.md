@@ -1,5 +1,7 @@
 # DevOps / SRE Qualification Task — Production EKS Fargate Deployment
 
+Implementation: [deployment runbook](RUNBOOK.md) and [solution notes](SOLUTION.md).
+
 **Time budget:** up to 4 hours of focused work.
 **Cloud:** AWS (use a sandbox or your own account — we will reimburse documented charges).
 **Region:** `eu-central-1` (adjust `terraform/variables.tf` if you prefer another).

@@ -1,0 +1,2 @@
+region                               = "eu-central-1"
+cluster_endpoint_public_access_cidrs = ["203.0.113.10/32"] # Replace with your public egress IP.

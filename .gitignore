@@ -1,0 +1,10 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+.kubeconfig
+node_modules/
+npm-debug.log*
+*_accessKeys.csv

@@ -1,0 +1,39 @@
+apiVersion: gateway.k8s.aws/v1
+kind: TargetGroupConfiguration
+metadata:
+  name: nodeapp
+  namespace: nodeapp
+spec:
+  targetReference:
+    name: nodeapp
+  defaultConfiguration:
+    targetType: ip
+    healthCheckConfig:
+      healthCheckPath: /health
+      healthCheckPort: traffic-port
+      healthCheckInterval: 15
+      matcher:
+        httpCode: "200"
+    targetGroupAttributes:
+      - key: deregistration_delay.timeout_seconds
+        value: "20"
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: nodeapp
+  namespace: nodeapp
+spec:
+  parentRefs:
+    - name: nodeapp
+      sectionName: http
+    - name: nodeapp
+      sectionName: https
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: nodeapp
+          port: 80
