@@ -25,7 +25,25 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "Kubernetes minor version for the EKS control plane."
   type        = string
-  default     = "1.30"
+  default     = "1.36"
+}
+
+variable "coredns_version" {
+  description = "Pinned EKS CoreDNS add-on version compatible with cluster_version."
+  type        = string
+  default     = "v1.14.7-eksbuild.10"
+}
+
+variable "cluster_endpoint_public_access_cidrs" {
+  description = "Public IPv4 CIDRs allowed to access the Kubernetes API."
+  type        = list(string)
+
+  validation {
+    condition = length(var.cluster_endpoint_public_access_cidrs) > 0 && alltrue([
+      for cidr in var.cluster_endpoint_public_access_cidrs : can(cidrnetmask(cidr)) && !endswith(cidr, "/0")
+    ])
+    error_message = "Provide at least one valid IPv4 CIDR; unrestricted /0 access is not allowed."
+  }
 }
 
 variable "vpc_cidr" {

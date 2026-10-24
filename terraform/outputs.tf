@@ -25,3 +25,7 @@ output "private_subnets" {
 output "ecr_repository_url" {
   value = aws_ecr_repository.app.repository_url
 }
+
+output "controller_role_arn" {
+  value = module.alb_controller_irsa.iam_role_arn
+}

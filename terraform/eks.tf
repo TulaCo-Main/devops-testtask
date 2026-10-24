@@ -1,20 +1,20 @@
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.24"
+  version = "21.29.0"
 
-  cluster_name    = var.cluster_name
-  cluster_version = var.cluster_version
+  name               = var.cluster_name
+  kubernetes_version = var.cluster_version
 
-  cluster_endpoint_public_access  = true
-  cluster_endpoint_private_access = true
+  endpoint_public_access       = true
+  endpoint_private_access      = true
+  endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
 
   enable_irsa = true
 
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.public_subnets
+  subnet_ids = module.vpc.private_subnets
 
-  # Fargate-only cluster. We declare profiles for kube-system (CoreDNS / metrics)
-  # and for our workloads.
+  # The module attaches AmazonEKSFargatePodExecutionRolePolicy for ECR pulls.
   fargate_profiles = {
     # CoreDNS must run on Fargate too — there are no EC2 nodes in this cluster.
     kube_system = {
@@ -25,27 +25,43 @@ module "eks" {
           labels = {
             "k8s-app" = "kube-dns"
           }
+        },
+        {
+          namespace = "kube-system"
+          labels = {
+            "app.kubernetes.io/name" = "aws-load-balancer-controller"
+          }
         }
       ]
-      subnet_ids = aws_subnet.public_data[*].id
+      subnet_ids = module.vpc.private_subnets
     }
 
-    # Workload Fargate profile.
-    apps = {
-      name = "apps"
+    # Each application Deployment selects a profile with exactly one AZ.
+    apps_a = {
+      name = "apps-a"
       selectors = [
         {
-          namespace = "default"
+          namespace = var.app_namespace
         }
       ]
-      subnet_ids = aws_subnet.public_data[*].id
+      subnet_ids = [module.vpc.private_subnets[0]]
+    }
+
+    apps_b = {
+      name = "apps-b"
+      selectors = [
+        {
+          namespace = var.app_namespace
+        }
+      ]
+      subnet_ids = [module.vpc.private_subnets[1]]
     }
   }
 
   # Cluster add-ons. CoreDNS is patched to run on Fargate via the compute config.
-  cluster_addons = {
+  addons = {
     coredns = {
-      most_recent = true
+      addon_version = var.coredns_version
       configuration_values = jsonencode({
         computeType = "Fargate"
         resources = {
@@ -53,12 +69,6 @@ module "eks" {
           requests = { cpu = "0.25", memory = "256M" }
         }
       })
-    }
-    kube-proxy = {
-      most_recent = true
-    }
-    vpc-cni = {
-      most_recent = true
     }
   }
 

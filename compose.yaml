@@ -1,0 +1,7 @@
+services:
+  nodeapp:
+    build: ./app
+    image: 056300054271.dkr.ecr.eu-central-1.amazonaws.com/devops-test/nodeapp:v2
+    platform: linux/amd64
+    ports:
+      - "127.0.0.1:3000:3000"
